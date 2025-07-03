@@ -49,6 +49,7 @@ var (
 	extraActionFileName = flag.String("extra_action_file", "", config.ExtraActionFileNameHelp)
 	outputFileName      = flag.String("output_file", "", "used only with extra_action_file")
 	buildOptions        = stringList("extra_build_flags", "Extra build flags to use when building the targets.")
+	rules               = flag.String("rules", "(kt|java|android)_*", "Rules that should be checked.")
 
 	blazeFlags = []string{"--tool_tag=unused_deps", "--keep_going", "--color=yes", "--curses=yes"}
 
@@ -354,7 +355,7 @@ func main() {
 	}
 	queryCmd = append(queryCmd, blazeFlags...)
 	queryCmd = append(
-		queryCmd, fmt.Sprintf("kind('(kt|java|android)_*', %s)", strings.Join(targetPatterns, " + ")))
+		queryCmd, fmt.Sprintf("kind('%s', %s)", *rules, strings.Join(targetPatterns, " + ")))
 
 	log.Printf("running: %s %s", *buildTool, strings.Join(queryCmd, " "))
 	queryOut, err := cmdWithStderr(*buildTool, queryCmd...).Output()
@@ -362,7 +363,7 @@ func main() {
 		log.Print(err)
 	}
 	if len(queryOut) == 0 {
-		fmt.Fprintln(os.Stderr, "found no targets of kind (kt|java|android)_*")
+		fmt.Fprintf(os.Stderr, "found no targets of kind (%s)\n", *rules)
 		usage()
 	}
 
